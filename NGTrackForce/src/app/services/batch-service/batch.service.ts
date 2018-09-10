@@ -19,7 +19,7 @@ export class BatchService {
   /**
    *  This gets all of the batches, every single one
    */
-  public getAllBatches(): Observable<Batch[]> {
+  public getAllBatches(): BehaviorSubject<Batch[]> {
     const url = this.baseURL;
     this.http.get<Batch[]>(url).subscribe(
       (data: Batch[]) => this.allBatches$.next(data),
@@ -49,9 +49,9 @@ export class BatchService {
    *
    * @param {Date} startDate - needs to be in long time
    * @param {Date} endDate - needs to be in long time
-   * @returns {Observable<Batch[]>}
+   * @returns {BehaviorSubject<Batch[]>}
    */
-  public getBatchesByDate(startDate: Date, endDate: Date): Observable<Batch[]> {
+  public getBatchesByDate(startDate: Date, endDate: Date): BehaviorSubject<Batch[]> {
     const url =
       this.baseURL + `/?start=${startDate.getTime()}&?end=${endDate.getTime()}`;
     this.http.get<Batch[]>(url).subscribe(
