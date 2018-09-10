@@ -3,7 +3,7 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { Batch } from '../../models/batch.model';
 import { Associate } from '../../models/associate.model';
 
@@ -13,12 +13,19 @@ export class BatchService {
 
   constructor(private http: HttpClient) {}
 
+  private allBatches$: BehaviorSubject<Batch[]> = new BehaviorSubject<Batch[]>([]);
+  private batchesWithinDates$: BehaviorSubject<Batch[]> = new BehaviorSubject<Batch[]>([]);
+  private batchesByDates$: BehaviorSubject<Batch[]> = new BehaviorSubject<Batch[]>([]);
   /**
    *  This gets all of the batches, every single one
    */
-  public getAllBatches(): Observable<Batch[]> {
+  public getAllBatches(): BehaviorSubject<Batch[]> {
     const url = this.baseURL;
-    return this.http.get<Batch[]>(url);
+    this.http.get<Batch[]>(url).subscribe(
+      (data: Batch[]) => this.allBatches$.next(data),
+      error => this.allBatches$.error(error)
+    );
+    return this.allBatches$;
   }
 
   /*
@@ -32,7 +39,11 @@ export class BatchService {
       this.baseURL +
       '/withindates' +
       `/?start=${startDate.getTime()}&end=${endDate.getTime()}`;
-    return this.http.get<Batch[]>(url);
+    this.http.get<Batch[]>(url).subscribe(
+      (data: Batch[]) => this.batchesWithinDates$.next(data),
+      error => this.batchesWithinDates$.error(error)
+    );
+    return this.batchesWithinDates$;
   }
 
   /**
@@ -41,12 +52,16 @@ export class BatchService {
    *
    * @param {Date} startDate - needs to be in long time
    * @param {Date} endDate - needs to be in long time
-   * @returns {Observable<Batch[]>}
+   * @returns {BehaviorSubject<Batch[]>}
    */
-  public getBatchesByDate(startDate: Date, endDate: Date): Observable<Batch[]> {
+  public getBatchesByDate(startDate: Date, endDate: Date): BehaviorSubject<Batch[]> {
     const url =
       this.baseURL + `/?start=${startDate.getTime()}&?end=${endDate.getTime()}`;
-    return this.http.get<Batch[]>(url);
+    this.http.get<Batch[]>(url).subscribe(
+      (data: Batch[]) => this.batchesByDates$.next(data),
+      error => this.batchesByDates$.error(error)
+    );
+    return this.batchesByDates$;
   }
 
   /**
