@@ -3,7 +3,7 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject, AsyncSubject } from 'rxjs';
 import { Batch } from '../../models/batch.model';
 import { Associate } from '../../models/associate.model';
 
@@ -12,13 +12,20 @@ export class BatchService {
   private baseURL: string = environment.url + 'TrackForce/batches';
 
   constructor(private http: HttpClient) {}
-
+  private allBatches$: BehaviorSubject<Batch[]> = new BehaviorSubject<Batch[]>([]);
+  private batchesByDate$: BehaviorSubject<Batch[]> = new BehaviorSubject<Batch[]>([]);
+  private batchDetails$: AsyncSubject<Object> = new AsyncSubject<Object>();
+  private batchDetailsByID$: AsyncSubject<Batch> = new AsyncSubject<Batch>();
   /**
    *  This gets all of the batches, every single one
    */
   public getAllBatches(): Observable<Batch[]> {
     const url = this.baseURL;
-    return this.http.get<Batch[]>(url);
+    this.http.get<Batch[]>(url).subscribe(
+      (data: Batch[]) => this.allBatches$.next(data),
+      error => this.allBatches$.error(error)
+    );
+    return this.allBatches$;
   }
 
   /*
@@ -33,6 +40,7 @@ export class BatchService {
       '/withindates' +
       `/?start=${startDate.getTime()}&end=${endDate.getTime()}`;
     return this.http.get<Batch[]>(url);
+    
   }
 
   /**
@@ -46,7 +54,11 @@ export class BatchService {
   public getBatchesByDate(startDate: Date, endDate: Date): Observable<Batch[]> {
     const url =
       this.baseURL + `/?start=${startDate.getTime()}&?end=${endDate.getTime()}`;
-    return this.http.get<Batch[]>(url);
+    this.http.get<Batch[]>(url).subscribe(
+      (data: Batch[]) => this.batchesByDate$.next(data),
+      error => this.batchesByDate$.error(error)
+    );
+    return this.batchesByDate$
   }
 
   /**
@@ -56,7 +68,12 @@ export class BatchService {
    */
   public getAssociatesForBatch(id: number): Observable<Associate[]> {
     const url = this.baseURL + '/' + id + '/associates';
-    return this.http.get<Associate[]>(url);
+    // this.http.get<Associate[]>(url).subscribe(
+    //   (data: Associate[]) => this.associatesBatch$.next(data),
+    //   error => this.associatesBatch$.error(error)
+    // );
+    // return this.associatesBatch$;
+    return this.http.get<Associate[]>(url)
   }
 
   /*
@@ -73,7 +90,11 @@ export class BatchService {
     const url =
       this.baseURL +
       `/details?start=${startDate.getTime()}&end=${endDate.getTime()}&courseName=${CourseName}`;
-    return this.http.get<Object>(url);
+    this.http.get<Object>(url).subscribe(
+      data => this.batchDetails$.next(data),
+      error => this.batchDetails$.error(error)
+    );
+    return this.batchDetails$;
   }
 
   public getAssociateCountByCurriculum(
@@ -94,7 +115,11 @@ export class BatchService {
    */
   public getBatchDetailsById(id: number): Observable<Batch> {
     const url = this.baseURL + '/batch/' + id;
-    return this.http.get<Batch>(url);
+    this.http.get<Batch>(url).subscribe(
+      (data: Batch) => this.batchDetailsByID$.next(data),
+      error => this.batchDetailsByID$.error(error)
+    );
+    return this.batchDetailsByID$
   }
 
   // // ============================================================================
