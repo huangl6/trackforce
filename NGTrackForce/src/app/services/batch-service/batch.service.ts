@@ -3,7 +3,7 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject, AsyncSubject } from 'rxjs';
 import { Batch } from '../../models/batch.model';
 import { Associate } from '../../models/associate.model';
 
@@ -16,6 +16,8 @@ export class BatchService {
   private allBatches$: BehaviorSubject<Batch[]> = new BehaviorSubject<Batch[]>([]);
   private batchesWithinDates$: BehaviorSubject<Batch[]> = new BehaviorSubject<Batch[]>([]);
   private batchesByDates$: BehaviorSubject<Batch[]> = new BehaviorSubject<Batch[]>([]);
+  private associatesForBatch$: BehaviorSubject<Associate[]> = new BehaviorSubject<Associate[]>([]);
+  private batchDetails$: AsyncSubject<Object> = new AsyncSubject<Object>();
   /**
    *  This gets all of the batches, every single one
    */
@@ -69,9 +71,13 @@ export class BatchService {
    * @param {number} id - the id of the batch you want the assciates for
    * @returns {Observable<Associate[]>}
    */
-  public getAssociatesForBatch(id: number): Observable<Associate[]> {
+  public getAssociatesForBatch(id: number): BehaviorSubject<Associate[]> {
     const url = this.baseURL + '/' + id + '/associates';
-    return this.http.get<Associate[]>(url);
+    this.http.get<Associate[]>(url).subscribe(
+      (data: Associate[]) => this.associatesForBatch$.next(data),
+      error => this.associatesForBatch$.error(error)
+    );
+    return this.associatesForBatch$
   }
 
   /*
@@ -88,7 +94,11 @@ export class BatchService {
     const url =
       this.baseURL +
       `/details?start=${startDate.getTime()}&end=${endDate.getTime()}&courseName=${CourseName}`;
-    return this.http.get<Object>(url);
+    this.http.get<Object>(url).subscribe(
+      data => this.batchDetails$.next(data),
+      error => this.batchDetails$.error(error)
+    );
+    return this.batchDetails$;
   }
 
   public getAssociateCountByCurriculum(
