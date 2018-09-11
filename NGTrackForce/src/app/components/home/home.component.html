@@ -49,6 +49,7 @@
           [colors]="clientColors" [options]="mappedOptions"
           (chartClick)="chartOnClick($event, Path.CLIENT_MAPPED)">
         </canvas>
+        
         <div class="center-div" *ngIf=loading>
           <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
         </div>

@@ -58,7 +58,7 @@ export class HomeComponent implements OnInit {
   // private options = ChartOptions.createOptionsLegend('right');
 
   unmappedOptions = ChartOptions.createOptionsTitle('Unmapped', 24, '#121212', 'right');
-  mappedOptions = ChartOptions.createOptionsTitle('Mapped', 24, '#121212', 'right');
+  // mappedOptions = ChartOptions.createOptionsTitle('Mapped', 24, '#121212', 'right');
   deployedOptions = ChartOptions.createOptionsTitle('Mapped vs. Unmapped (Deployed)', 24, '#121212', 'right');
   undeployedOptions = ChartOptions.createOptionsTitle('Mapped vs. Unmapped (Not Deployed)', 24, '#121212', 'right');
   //end of chart settings
@@ -68,7 +68,27 @@ export class HomeComponent implements OnInit {
   private deployedData: number[] = [0, 0];
   private mappedData: number[] = [0, 0, 0, 0];
   private unmappedData: number[] = [0, 0, 0, 0];
-
+  
+  mappedOptions = {
+    title: ChartOptions.createOptionsTitle('Mapped', 24, '#121212', 'right'),
+    data: [{
+        x: "Training", 
+        y: [this.mappedData[0]]
+    },
+    {
+      x: "Reserved",
+      y: [this.mappedData[1]]
+    },
+    {
+      x: "Selected",
+      y: [this.mappedData[2]]
+    },
+    {
+      x: "Confirmed",
+      y: [this.mappedData[3]]
+    }
+    ]
+  };
 
   /**
     *@param {RequestService} rs
@@ -115,11 +135,13 @@ export class HomeComponent implements OnInit {
         this.unmappedData[2] = this.count['counts'][6];
         this.unmappedData[3] = this.count['counts'][7];
         localStorage.setItem('unmappedData', JSON.stringify(this.unmappedData));
-
-        this.mappedData[0] = this.count['counts'][8];
-        this.mappedData[1] = this.count['counts'][9];
-        this.mappedData[2] = this.count['counts'][10];
-        this.mappedData[3] = this.count['counts'][11];
+        
+        let mappedTotal = 0;
+        mappedTotal += this.count['counts'][8] + this.count['counts'][9] + this.count['counts'][10] + this.count['counts'][11];
+        this.mappedData[0] = this.count['counts'][8] / mappedTotal * 100;
+        this.mappedData[1] = this.count['counts'][9] / mappedTotal * 100;
+        this.mappedData[2] = this.count['counts'][10] / mappedTotal * 100;
+        this.mappedData[3] = this.count['counts'][11] / mappedTotal * 100;
         localStorage.setItem('mappedData', JSON.stringify(this.mappedData));
         this.loading = false;
       }
@@ -148,6 +170,11 @@ export class HomeComponent implements OnInit {
   }
 
   public getMappedData(): number[] {
+    let total = 0;
+    for (const number of this.mappedData){
+      total += number;
+    }
+    console.log(total)
     return this.mappedData;
   }
 
